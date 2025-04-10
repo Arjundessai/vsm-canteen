@@ -2,6 +2,44 @@
 <html>
 <head>
   <title>VSM CANTEEN</title>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // Paste your config here:
+  const firebaseConfig = {
+  apiKey: "AIzaSyAkX15IbvwXYysyqj-RxuE8C6uTlaWYERI",
+  authDomain: "vsm-canteen.firebaseapp.com",
+  projectId: "vsm-canteen",
+  storageBucket: "vsm-canteen.firebasestorage.app",
+  messagingSenderId: "389927470639",
+  appId: "1:389927470639:web:275bb13051ce3310bfa8da"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Save order to Firebase
+  window.saveOrderToFirebase = async function(orderData) {
+    try {
+      await addDoc(collection(db, "orders"), orderData);
+      console.log("✅ Order saved to Firebase");
+    } catch (e) {
+      console.error("❌ Error saving order:", e);
+    }
+  }
+
+  // Admin: fetch all orders
+  window.getAllOrders = async function() {
+    const querySnapshot = await getDocs(collection(db, "orders"));
+    let orders = [];
+    querySnapshot.forEach((doc) => {
+      orders.push(doc.data());
+    });
+    return orders;
+  }
+</script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
