@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VSM CANTEEN</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    main {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+    }
+    .item, .cart-item, .order-box {
+      border: 1px solid #dee2e6;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background: #fdfdfd;
+    }
+    .hidden { display: none; }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    input {
+      padding: 10px;
+      margin: 8px 0;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    h2, h3 { color: #343a40; }
+    #receiptContent {
+      background-color: #f1f1f1;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      margin-top: 10px;
+    }
+    canvas { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<header>🍴 VSM CANTEEN</header>
+<main>
+
+  <h2>📋 Menu</h2>
+  <div id="menu"></div>
+  <hr>
+
+  <h2>🛒 Your Cart</h2>
+  <div id="cart"></div>
+  <button onclick="showCheckout()">Proceed to Checkout</button>
+
+  <div id="checkout" class="hidden">
+    <h2>📝 Checkout</h2>
+    <input type="text" id="name" placeholder="Your Name" />
+    <input type="text" id="roll" placeholder="Roll Number" />
+    <button onclick="placeOrder()">Place Order</button>
+  </div>
+
+  <div id="receipt" class="hidden">
+    <h2>✅ Order Receipt</h2>
+    <div id="receiptContent"></div>
+    <canvas id="qr"></canvas>
+    <br>
+    <button onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
+
+  <hr>
+  <h2>🔒 Admin Panel</h2>
+  <input type="password" id="adminPass" placeholder="Enter Admin Password" />
+  <button onclick="checkAdmin()">Login</button>
+
+  <div id="adminPanel" class="hidden">
+    <h3>📦 All Orders</h3>
+    <div id="adminOrders"></div>
+    <button onclick="clearOrders()">❌ Clear All Orders</button>
+  </div>
+
+</main>
+
+<script>
+const menuItems = [
+  { name: "Samosa", price: 15 },
+  { name: "Idli", price: 30 },
+  { name: "Sandwich", price: 40 },
+  { name: "Chai", price: 10 },
+  { name: "Coffee", price: 20 }
+];
+
+let cart = [];
+
+function loadMenu() {
+  const menu = document.getElementById("menu");
+  menu.innerHTML = "";
+  menuItems.forEach((item, i) => {
+    menu.innerHTML += `
+      <div class="item">
+        <strong>${item.name}</strong> - ₹${item.price}<br>
+        <button onclick="addToCart(${i})">Add to Cart</button>
+      </div>`;
+  });
+}
+
+function addToCart(i) {
+  const existing = cart.find(x => x.name === menuItems[i].name);
+  if (existing) existing.qty += 1;
+  else cart.push({ ...menuItems[i], qty: 1 });
+  showCart();
+}
+
+function showCart() {
+  const cartDiv = document.getElementById("cart");
+  if (cart.length === 0) {
+    cartDiv.innerHTML = "<p>Cart is empty.</p>";
+    return;
+  }
+  let total = 0;
+  cartDiv.innerHTML = "";
+  cart.forEach((item, i) => {
+    const itemTotal = item.price * item.qty;
+    total += itemTotal;
+    cartDiv.innerHTML += `
+      <div class="cart-item">
+        ${item.name} x ${item.qty} = ₹${itemTotal}
+        <br><button onclick="removeItem(${i})">Remove</button>
+      </div>`;
+  });
+  cartDiv.innerHTML += `<h3>Total: ₹${total}</h3>`;
+}
+
+function removeItem(i) {
+  cart.splice(i, 1);
+  showCart();
+}
+
+function showCheckout() {
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+  document.getElementById("checkout").classList.remove("hidden");
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function placeOrder() {
+  const name = document.getElementById("name").value.trim();
+  const roll = document.getElementById("roll").value.trim();
+  if (!name || !roll) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  const orderId = "VSM-" + String(orders.length + 1).padStart(3, '0');
+  const time = new Date().toLocaleString();
+  const order = { id: orderId, name, roll, items: cart, time };
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  showReceipt(order);
+  cart = [];
+  showCart();
+}
+
+function showReceipt(order) {
+  document.getElementById("receipt").classList.remove("hidden");
+  document.getElementById("checkout").classList.add("hidden");
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("cart").classList.add("hidden");
+
+  let total = 0;
+  let itemsHTML = "";
+  order.items.forEach(item => {
+    const itemTotal = item.price * item.qty;
+    total += itemTotal;
+    itemsHTML += `<li>${item.name} x ${item.qty} - ₹${itemTotal}</li>`;
+  });
+
+  const receiptHTML = `
+    <p><strong>Order ID:</strong> ${order.id}</p>
+    <p><strong>Name:</strong> ${order.name}</p>
+    <p><strong>Roll No:</strong> ${order.roll}</p>
+    <p><strong>Time:</strong> ${order.time}</p>
+    <ul>${itemsHTML}</ul>
+    <h3>Total: ₹${total}</h3>
+  `;
+  document.getElementById("receiptContent").innerHTML = receiptHTML;
+
+  new QRious({
+    element: document.getElementById("qr"),
+    value: `VSM CANTEEN\nOrder ID: ${order.id}\nName: ${order.name}\nRoll: ${order.roll}\nTotal: ₹${total}`,
+    size: 150
+  });
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const receiptText = document.getElementById("receiptContent").innerText;
+  doc.text(receiptText, 10, 10);
+  doc.save("VSM_CANTEEN_Receipt.pdf");
+}
+
+function checkAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "admin123") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadAdminOrders();
+  } else {
+    alert("Wrong password!");
+  }
+}
+
+function loadAdminOrders() {
+  const data = JSON.parse(localStorage.getItem("orders") || "[]");
+  const box = document.getElementById("adminOrders");
+  if (data.length === 0) {
+    box.innerHTML = "<p>No orders yet.</p>";
+    return;
+  }
+  box.innerHTML = "";
+  data.forEach((order, i) => {
+    let total = 0;
+    let items = "";
+    order.items.forEach(item => {
+      total += item.price * item.qty;
+      items += `<li>${item.name} x ${item.qty}</li>`;
+    });
+    box.innerHTML += `
+      <div class="order-box">
+        <p><strong>${order.id}</strong> - ${order.name} (Roll: ${order.roll})</p>
+        <p>Time: ${order.time}</p>
+        <ul>${items}</ul>
+        <p><strong>Total: ₹${total}</strong></p>
+      </div>`;
+  });
+}
+
+function clearOrders() {
+  if (confirm("Clear all orders?")) {
+    localStorage.removeItem("orders");
+    loadAdminOrders();
+  }
+}
+
+loadMenu();
+showCart();
+</script>
+
+</body>
+</html>
