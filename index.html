@@ -1,252 +1,280 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VSM CANTEEN - Order Form</title>
+  <title>VSM CANTEEN</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
-
-    .container {
-      max-width: 400px;
-      margin: auto;
-      background: #fff;
+    header {
+      background-color: #007bff;
+      color: white;
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h2 {
       text-align: center;
-      color: #333;
+      font-size: 28px;
+      font-weight: bold;
     }
-
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
+    main {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+    }
+    .item, .cart-item, .order-box {
+      border: 1px solid #dee2e6;
+      padding: 10px;
+      margin: 10px 0;
       border-radius: 8px;
-      font-size: 16px;
+      background: #fdfdfd;
     }
-
+    .hidden { display: none; }
     button {
-      background-color: #007BFF;
+      background-color: #007bff;
       color: white;
       border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      margin-top: 10px;
       cursor: pointer;
-      transition: 0.3s;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
-    .receipt {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #e8f5e9;
-      border-left: 5px solid #4CAF50;
-      border-radius: 8px;
-    }
-
-    .receipt p {
-      margin: 5px 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>🍽️ VSM CANTEEN</h2>
-    <form onsubmit="event.preventDefault(); submitOrder();">
-      <input type="text" id="name" placeholder="Student Name" required />
-      <input type="text" id="rollno" placeholder="Roll No" required />
-      <input type="text" id="foodItem" placeholder="Food Item" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <button type="submit">Place Order</button>
-    </form>
-
-    <div class="receipt" id="receiptBox">
-      <h3>🧾 Order Receipt</h3>
-      <p><strong>Name:</strong> <span id="r_name"></span></p>
-      <p><strong>Roll No:</strong> <span id="r_rollno"></span></p>
-      <p><strong>Item:</strong> <span id="r_food"></span></p>
-      <p><strong>Quantity:</strong> <span id="r_quantity"></span></p>
-      <p><strong>Order ID:</strong> <span id="r_orderId"></span></p>
-    </div>
-  </div>
-
-  <script>
-    function submitOrder() {
-      const name = document.getElementById("name").value.trim();
-      const rollno = document.getElementById("rollno").value.trim();
-      const foodItem = document.getElementById("foodItem").value.trim();
-      const quantity = document.getElementById("quantity").value.trim();
-
-      fetch("https://script.google.com/macros/s/AKfycbzHgW4VYzwmD1DLxJg6tF6GQdNGx1kEmtRPVdPZH38PoDy3ImNbWB1dgUUGKvEx9ae-/exec", {
-        method: "POST",
-        body: JSON.stringify({
-          name,
-          rollno,
-          foodItem,
-          quantity
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById("r_name").textContent = name;
-          document.getElementById("r_rollno").textContent = rollno;
-          document.getElementById("r_food").textContent = foodItem;
-          document.getElementById("r_quantity").textContent = quantity;
-          document.getElementById("r_orderId").textContent = data.orderId;
-
-          document.getElementById("receiptBox").style.display = "block";
-          document.querySelector("form").reset();
-        } else {
-          alert("Something went wrong! Try again.");
-        }
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        alert("Error submitting order.");
-      });
-    }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VSM CANTEEN - Order Form</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-
-    input, button {
+    input {
+      padding: 10px;
+      margin: 8px 0;
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 5px;
     }
-
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    .receipt {
-      display: none;
-      margin-top: 20px;
+    h2, h3 { color: #343a40; }
+    #receiptContent {
+      background-color: #f1f1f1;
       padding: 15px;
-      background: #e8f5e9;
-      border-left: 5px solid #4CAF50;
-      border-radius: 8px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: 'Courier New', monospace;
+      margin-top: 10px;
     }
-
-    .receipt p {
-      margin: 5px 0;
-    }
+    canvas { margin-top: 10px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🍽️ VSM CANTEEN</h2>
-    <form onsubmit="event.preventDefault(); submitOrder();">
-      <input type="text" id="name" placeholder="Student Name" required />
-      <input type="text" id="rollno" placeholder="Roll No" required />
-      <input type="text" id="foodItem" placeholder="Food Item" required />
-      <input type="number" id="quantity" placeholder="Quantity" required />
-      <button type="submit">Place Order</button>
-    </form>
 
-    <div class="receipt" id="receiptBox">
-      <h3>🧾 Order Receipt</h3>
-      <p><strong>Name:</strong> <span id="r_name"></span></p>
-      <p><strong>Roll No:</strong> <span id="r_rollno"></span></p>
-      <p><strong>Item:</strong> <span id="r_food"></span></p>
-      <p><strong>Quantity:</strong> <span id="r_quantity"></span></p>
-      <p><strong>Order ID:</strong> <span id="r_orderId"></span></p>
-    </div>
+<header>🍴 VSM CANTEEN</header>
+<main>
+
+  <h2>📋 Menu</h2>
+  <div id="menu"></div>
+  <hr>
+
+  <h2>🛒 Your Cart</h2>
+  <div id="cart"></div>
+  <button onclick="showCheckout()">Proceed to Checkout</button>
+
+  <div id="checkout" class="hidden">
+    <h2>📝 Checkout</h2>
+    <input type="text" id="name" placeholder="Your Name" />
+    <input type="text" id="roll" placeholder="Roll Number" />
+    <button onclick="placeOrder()">Place Order</button>
   </div>
 
-  <script>
-    function submitOrder() {
-      const name = document.getElementById("name").value.trim();
-      const rollno = document.getElementById("rollno").value.trim();
-      const foodItem = document.getElementById("foodItem").value.trim();
-      const quantity = document.getElementById("quantity").value.trim();
+  <div id="receipt" class="hidden">
+    <h2>✅ Order Receipt</h2>
+    <div id="receiptContent"></div>
+    <canvas id="qr"></canvas>
+    <br>
+    <button onclick="downloadPDF()">📄 Download PDF</button>
+  </div>
 
-      fetch("https://script.google.com/macros/s/AKfycbzHgW4VYzwmD1DLxJg6tF6GQdNGx1kEmtRPVdPZH38PoDy3ImNbWB1dgUUGKvEx9ae-/exec", {
-        method: "POST",
-        body: JSON.stringify({
-          name,
-          rollno,
-          foodItem,
-          quantity
-        }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById("r_name").textContent = name;
-          document.getElementById("r_rollno").textContent = rollno;
-          document.getElementById("r_food").textContent = foodItem;
-          document.getElementById("r_quantity").textContent = quantity;
-          document.getElementById("r_orderId").textContent = data.orderId;
+  <hr>
+  <h2>🔒 Admin Panel</h2>
+  <input type="password" id="adminPass" placeholder="Enter Admin Password" />
+  <button onclick="checkAdmin()">Login</button>
 
-          document.getElementById("receiptBox").style.display = "block";
-          document.querySelector("form").reset();
-        } else {
-          alert("Something went wrong! Try again.");
-        }
-      })
-      .catch(err => {
-        console.error("Error:", err);
-        alert("Error submitting order.");
-      });
-    }
-  </script>
+  <div id="adminPanel" class="hidden">
+    <h3>📦 All Orders</h3>
+    <div id="adminOrders"></div>
+    <button onclick="clearOrders()">❌ Clear All Orders</button>
+  </div>
+
+</main>
+
+<script>
+const menuItems = [
+  { name: "Samosa", price: 15 },
+  { name: "Idli", price: 30 },
+  { name: "Sandwich", price: 40 },
+  { name: "Chai", price: 10 },
+  { name: "Coffee", price: 20 }
+];
+
+let cart = [];
+
+function loadMenu() {
+  const menu = document.getElementById("menu");
+  menu.innerHTML = "";
+  menuItems.forEach((item, i) => {
+    menu.innerHTML += `
+      <div class="item">
+        <strong>${item.name}</strong> - ₹${item.price}<br>
+        <button onclick="addToCart(${i})">Add to Cart</button>
+      </div>`;
+  });
+}
+
+function addToCart(i) {
+  const existing = cart.find(x => x.name === menuItems[i].name);
+  if (existing) existing.qty += 1;
+  else cart.push({ ...menuItems[i], qty: 1 });
+  showCart();
+}
+
+function showCart() {
+  const cartDiv = document.getElementById("cart");
+  if (cart.length === 0) {
+    cartDiv.innerHTML = "<p>Cart is empty.</p>";
+    return;
+  }
+  let total = 0;
+  cartDiv.innerHTML = "";
+  cart.forEach((item, i) => {
+    const itemTotal = item.price * item.qty;
+    total += itemTotal;
+    cartDiv.innerHTML += `
+      <div class="cart-item">
+        ${item.name} x ${item.qty} = ₹${itemTotal}
+        <br><button onclick="removeItem(${i})">Remove</button>
+      </div>`;
+  });
+  cartDiv.innerHTML += `<h3>Total: ₹${total}</h3>`;
+}
+
+function removeItem(i) {
+  cart.splice(i, 1);
+  showCart();
+}
+
+function showCheckout() {
+  if (cart.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+  document.getElementById("checkout").classList.remove("hidden");
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function placeOrder() {
+  const name = document.getElementById("name").value.trim();
+  const roll = document.getElementById("roll").value.trim();
+  if (!name || !roll) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  const orderId = "VSM-" + String(orders.length + 1).padStart(3, '0');
+  const time = new Date().toLocaleString();
+  const order = { id: orderId, name, roll, items: cart, time };
+  orders.push(order);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  showReceipt(order);
+  cart = [];
+  showCart();
+}
+
+function showReceipt(order) {
+  document.getElementById("receipt").classList.remove("hidden");
+  document.getElementById("checkout").classList.add("hidden");
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("cart").classList.add("hidden");
+
+  let total = 0;
+  let itemsHTML = "";
+  order.items.forEach(item => {
+    const itemTotal = item.price * item.qty;
+    total += itemTotal;
+    itemsHTML += `<li>${item.name} x ${item.qty} - ₹${itemTotal}</li>`;
+  });
+
+  const receiptHTML = `
+    <p><strong>Order ID:</strong> ${order.id}</p>
+    <p><strong>Name:</strong> ${order.name}</p>
+    <p><strong>Roll No:</strong> ${order.roll}</p>
+    <p><strong>Time:</strong> ${order.time}</p>
+    <ul>${itemsHTML}</ul>
+    <h3>Total: ₹${total}</h3>
+  `;
+  document.getElementById("receiptContent").innerHTML = receiptHTML;
+
+  new QRious({
+    element: document.getElementById("qr"),
+    value: `VSM CANTEEN\nOrder ID: ${order.id}\nName: ${order.name}\nRoll: ${order.roll}\nTotal: ₹${total}`,
+    size: 150
+  });
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const receiptText = document.getElementById("receiptContent").innerText;
+  doc.text(receiptText, 10, 10);
+  doc.save("VSM_CANTEEN_Receipt.pdf");
+}
+
+function checkAdmin() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "admin123") {
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadAdminOrders();
+  } else {
+    alert("Wrong password!");
+  }
+}
+
+function loadAdminOrders() {
+  const data = JSON.parse(localStorage.getItem("orders") || "[]");
+  const box = document.getElementById("adminOrders");
+  if (data.length === 0) {
+    box.innerHTML = "<p>No orders yet.</p>";
+    return;
+  }
+  box.innerHTML = "";
+  data.forEach((order, i) => {
+    let total = 0;
+    let items = "";
+    order.items.forEach(item => {
+      total += item.price * item.qty;
+      items += `<li>${item.name} x ${item.qty}</li>`;
+    });
+    box.innerHTML += `
+      <div class="order-box">
+        <p><strong>${order.id}</strong> - ${order.name} (Roll: ${order.roll})</p>
+        <p>Time: ${order.time}</p>
+        <ul>${items}</ul>
+        <p><strong>Total: ₹${total}</strong></p>
+      </div>`;
+  });
+}
+
+function clearOrders() {
+  if (confirm("Clear all orders?")) {
+    localStorage.removeItem("orders");
+    loadAdminOrders();
+  }
+}
+
+loadMenu();
+showCart();
+</script>
+
 </body>
 </html>
