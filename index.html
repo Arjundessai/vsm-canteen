@@ -124,3 +124,129 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VSM CANTEEN - Order Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .receipt {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 5px solid #4CAF50;
+      border-radius: 8px;
+    }
+
+    .receipt p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🍽️ VSM CANTEEN</h2>
+    <form onsubmit="event.preventDefault(); submitOrder();">
+      <input type="text" id="name" placeholder="Student Name" required />
+      <input type="text" id="rollno" placeholder="Roll No" required />
+      <input type="text" id="foodItem" placeholder="Food Item" required />
+      <input type="number" id="quantity" placeholder="Quantity" required />
+      <button type="submit">Place Order</button>
+    </form>
+
+    <div class="receipt" id="receiptBox">
+      <h3>🧾 Order Receipt</h3>
+      <p><strong>Name:</strong> <span id="r_name"></span></p>
+      <p><strong>Roll No:</strong> <span id="r_rollno"></span></p>
+      <p><strong>Item:</strong> <span id="r_food"></span></p>
+      <p><strong>Quantity:</strong> <span id="r_quantity"></span></p>
+      <p><strong>Order ID:</strong> <span id="r_orderId"></span></p>
+    </div>
+  </div>
+
+  <script>
+    function submitOrder() {
+      const name = document.getElementById("name").value.trim();
+      const rollno = document.getElementById("rollno").value.trim();
+      const foodItem = document.getElementById("foodItem").value.trim();
+      const quantity = document.getElementById("quantity").value.trim();
+
+      fetch("https://script.google.com/macros/s/AKfycbzHgW4VYzwmD1DLxJg6tF6GQdNGx1kEmtRPVdPZH38PoDy3ImNbWB1dgUUGKvEx9ae-/exec", {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          rollno,
+          foodItem,
+          quantity
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById("r_name").textContent = name;
+          document.getElementById("r_rollno").textContent = rollno;
+          document.getElementById("r_food").textContent = foodItem;
+          document.getElementById("r_quantity").textContent = quantity;
+          document.getElementById("r_orderId").textContent = data.orderId;
+
+          document.getElementById("receiptBox").style.display = "block";
+          document.querySelector("form").reset();
+        } else {
+          alert("Something went wrong! Try again.");
+        }
+      })
+      .catch(err => {
+        console.error("Error:", err);
+        alert("Error submitting order.");
+      });
+    }
+  </script>
+</body>
+</html>
